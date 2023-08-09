@@ -3,11 +3,10 @@ server:
 
 eureka:
   client:
-    register-with-eureka: false
-    fetch-registry: false
+    register-with-eureka: true
+    fetch-registry: true
     service-url:
       defaultZont: http://localhost:8761/eureka
-# FilterConfig ? gatewayRoutes? ?? ?? ??? ????.
 spring:
   application:
     name: apigateway-service
@@ -16,14 +15,26 @@ spring:
       default-filters:
         - name: GlobalFilter
           args:
-            baseMessage: Spring Cloud Gateway Global Filter #??? ???
+            baseMessage: Spring Cloud Gateway Global Filter #출력하고 싶은 메시지
             preLogger: true
             postLogger: true
       routes:
-        - id: first-service
-          uri: http://localhost:8081/ # ??? ??
+        - id: user-service
+          uri: lb://USER-SERVICE
           predicates:
-            - Path=/first-service/** # ????? ??
+            - Path=/user-service/**
+        - id: catalog-service
+          uri: lb://CATALOG-SERVICE
+          predicates:
+            - Path=/catalog-service/**
+        - id: order-service
+          uri: lb://ORDER-SERVICE
+          predicates:
+            - Path=/order-service/**
+        - id: first-service
+          uri: http://localhost:8081/ # api gateway가 요청을 넘겨줄 대상주소
+          predicates:
+            - Path=/first-service/** # api gateway에 요청할 때 입력할 주소
           filters:
 #            - AddRequestHeader=first-request, first-request-header2 # key, value
 #            - AddResponseHeader=first-response, first-request-response2 # key, value
@@ -35,9 +46,9 @@ spring:
           filters:
 #            - AddRequestHeader=second-request, second-request-header2 # key, value
 #            - AddResponseHeader=second-response, second-request-response2 # key, value
-            - name: CustomFilter # ??? ??? name ?? ??
+            - name: CustomFilter # 적용할 Filter name
             - name: LoggingFilter
               args:
-                baseMessage: Hi there #??? ???
+                baseMessage: Hi there # 출력하고 싶은 메시지
                 preLogger: true
                 postLogger: true
