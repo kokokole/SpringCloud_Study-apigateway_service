@@ -10,6 +10,11 @@ eureka:
 spring:
   application:
     name: apigateway-service
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: guest
+    password: guest
   cloud:
     gateway:
       default-filters:
@@ -19,10 +24,6 @@ spring:
             preLogger: true
             postLogger: true
       routes:
-#        - id: user-service
-#          uri: lb://USER-SERVICE
-#          predicates:
-#            - Path=/user-service/**
         - id: user-service
           uri: lb://USER-SERVICE
           predicates:
@@ -56,6 +57,14 @@ spring:
           uri: lb://ORDER-SERVICE
           predicates:
             - Path=/order-service/**
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/user-service/actuator/login/**
+            - Method=GET, POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
         - id: first-service
           uri: http://localhost:8081/ # api gateway가 요청을 넘겨줄 대상주소
           predicates:
@@ -77,5 +86,8 @@ spring:
                 baseMessage: Hi there # 출력하고 싶은 메시지
                 preLogger: true
                 postLogger: true
-token:
-  secret: randomvalue # 암호화에 사용하는  임의의 키값
+management:
+  endpoints:
+    web:
+      exposure:
+        include: refresh, health, beans, httptrace, busrefresh
